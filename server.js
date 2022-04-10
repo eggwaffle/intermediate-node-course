@@ -4,7 +4,26 @@ const bodyParser= require('body-parser');
 const port=8000;
 const app= express();
 const User=require('./models/User');
-mongoose.connect('mongodb://127.0.0.1:27017/userData')
+mongoose.connect('mongodb://127.0.0.1/userData')
+
+function sendResponse(res,err,data){
+  if (err){
+    res.json({
+      success: false,
+      message: err
+    })
+  } else if (!data){
+    res.json({
+      success: false,
+      message: "Not Found"
+    })
+  } else {
+    res.json({
+      success: true,
+      data: data
+    })
+  }
+}
 
 app.use(bodyParser.json());
 
@@ -16,76 +35,30 @@ app.listen(port, ()=>{
 app.post('/users',(req,res)=>{
   // User.create()
   User.create(
-    {
-      name:req.body.newData.name,
-      email:req.body.newData.email,
-      password:req.body.newData.password
-    },
-    (err,data)=>{
-    if (err){
-      res.json({success: false,message: err})
-    } else if (!data){
-      res.json({success: false,message: "Not Found"})
-    } else {
-      res.json({success: true,data: data})
-    }
-  })
+    {...req.body.newData},
+    (err,data)=>{sendResponse(res,err,data)}
+  )
 })
 
 app.route('/users/:id')
 // READ
 .get((req,res)=>{
   // User.findById()
-  User.findById(req.params.id,(err,data)=>{
-    if (err){
-      res.json({
-        success: false,
-        message: err
-      })
-    } else if (!data){
-      res.json({
-        success: false,
-        message: "Not Found"
-      })
-    } else {
-      res.json({
-        success: true,
-        data: data
-      })
-    }
-  })
+  User.findById(
+    req.params.id,
+    (err,data)=>{sendResponse(res,err,data)}
+  )
 })
 // UPDATE
 .put((req,res)=>{
   // User.findByIdAndUpdate()
   User.findByIdAndUpdate(
     req.params.id,
-    {
-      name:req.body.newData.name,
-      email:req.body.newData.email,
-      password:req.body.newData.password
-    },
+    {...req.body.newData},
     {
       new:true
     },
-    (err,data)=>{
-      if (err){
-        res.json({
-          success: false,
-          message: err
-        })
-      } else if (!data){
-        res.json({
-          success: false,
-          message: "Not Found"
-        })
-      } else {
-        res.json({
-          success: true,
-          data: data
-        })
-      }
-    }
+    (err,data)=>{sendResponse(res,err,data)}
   )
 })
 // DELETE
@@ -93,23 +66,6 @@ app.route('/users/:id')
   // User.findByIdAndDelete()
   User.findByIdAndDelete(
     req.params.id,
-    (err,data)=>{
-      if (err){
-        res.json({
-          success: false,
-          message: err
-        })
-      } else if (!data){
-        res.json({
-          success: false,
-          message: "Not Found"
-        })
-      } else {
-        res.json({
-          success: true,
-          data: data
-        })
-      }
-    }
+    (err,data)=>{sendResponse(res,err,data)}
   )
 })
